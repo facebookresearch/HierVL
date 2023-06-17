@@ -1,0 +1,82 @@
+{
+    "name": "HowTo100M_Classification",
+    "n_gpu": 8,
+    "arch": {
+        "type": "FrozenInTime",
+        "args": {
+            "video_params": {
+                "model": "SpaceTimeTransformer",
+                "arch_config": "base_patch16_224",
+                "num_frames": 16,
+                "pretrained": true,
+                "time_init": "zeros"
+            },
+            "text_params": {
+                "model": "distilbert-base-uncased",
+                "pretrained": true,
+                "input": "text"
+            },
+            "aggregation_params": {
+                "do_aggregation": true,
+                "type": "average"
+            },
+            "projection": "minimal",
+            "load_checkpoint" : "/path/to/checkpoint.pth"
+        }
+    },
+    "data_loader":
+            [
+                {
+                    "type": "MultiDistTextVideoDataLoader",
+                    "args":{
+                        "dataset_name": "HowTo100M_VC",
+                        "data_dir": "/datasets01/HowTo100M/022520/videos/",
+                        "meta_dir": "absolute/path/to/dataset/",
+                        "reader": "cv2_howto100m",
+                        "shuffle": true,
+                        "num_workers": 16,
+                        "batch_size": 4,
+                        "split": "train",
+                        "text_params": {
+                            "input": "text"
+                        },
+                        "video_params": {
+                            "input_res": 224,
+                            "num_frames": 4,
+                            "loading": "lax"
+                        },
+                        "collate_fn": "my_custom_collate"
+                    }
+                }
+            ],
+    "optimizer": {
+        "type": "AdamW",
+        "args":{
+            "lr": 1e-3
+        }
+    },
+    "loss": {
+        "type": "CrossEntropy",
+        "args": {
+        }
+    },
+    "metrics": [
+        "ht100m_metrics"
+     ],
+    "trainer": {
+        "epochs": 100,
+        "start_epoch" : 1,
+        "max_samples_per_epoch": 500000,
+        "save_dir": "results/HT100M_4f",
+        "save_period": 2,
+        "verbosity": 2,
+        "monitor": "min val_loss_0",
+        "early_stop": 10,
+        "init_val": false,
+        "neptune": false
+    },
+    "visualizer": {
+        "type": ""
+    }
+
+}

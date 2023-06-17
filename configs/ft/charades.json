@@ -1,0 +1,79 @@
+{
+    "name": "CharadesEgo_16f",
+    "n_gpu": 8,
+    "arch": {
+        "type": "FrozenInTime",
+        "args": {
+            "video_params": {
+                "model": "SpaceTimeTransformer",
+                "arch_config": "base_patch16_224",
+                "num_frames": 16,
+                "pretrained": true,
+                "time_init": "zeros",
+                "drop_rate": 0.0,
+                "attn_drop_rate": 0.0
+            },
+            "text_params": {
+                "model": "distilbert-base-uncased",
+                "pretrained": true,
+                "input": "text"
+            },
+            "projection": "minimal",
+            "load_checkpoint": "/path/to/checkpoint.pth"
+        }
+    },
+    "data_loader":
+            [
+                {
+                    "type": "MultiDistTextVideoDataLoader",
+                    "args":{
+                        "dataset_name": "CharadesEgo",
+                        "data_dir": "/datasets01/Charades-ego-v1/101320/charades-ego-v1/CharadesEgo_v1_480",
+                        "meta_dir": "absolute/path/to/dataset/",
+                        "reader": "cv2_charades",
+                        "shuffle": true,
+                        "num_workers": 16,
+                        "batch_size": 4,
+                        "split": "train",
+                        "text_params": {
+                            "input": "text"
+                        },
+                        "video_params": {
+                            "input_res": 224,
+                            "num_frames": 16,
+                            "loading": "lax"
+                        }
+                    }
+                }
+            ],
+    "optimizer": {
+        "type": "AdamW",
+        "args":{
+            "lr": 3e-5
+        }
+    },
+    "loss": {
+        "type": "NormSoftmaxLoss",
+        "args": {
+        }
+    },
+    "metrics": [
+        "charades_metrics"
+     ],
+    "trainer": {
+        "epochs": 20,
+        "max_samples_per_epoch": 500000,
+        "save_dir": "results/CharadesEgo_16f",
+        "save_period": 2,
+        "verbosity": 2,
+        "monitor": "min val_loss_0",
+        "early_stop": 10,
+        "init_val": false,
+        "neptune": false,
+        "start_epoch": 1
+    },
+    "visualizer": {
+        "type": ""
+    }
+
+}
